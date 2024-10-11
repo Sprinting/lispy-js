@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lispy in JS</title>
+    <style>
+      :root {
+        --bg-color: #1e1e2e;
+        --text-color: #cdd6f4;
+        --input-bg: #313244;
+        --highlight-color: #89b4fa;
+        --secondary-color: #f5c2e7;
+        --error-color: #f38ba8;
+        --links-color: #15e0bf;
+      }
+      body {
+        font-family: "Fira Code", monospace;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      h1,
+      h3 {
+        text-align: center;
+        color: var(--highlight-color);
+        margin-bottom: 20px;
+      }
+      #main-container {
+        display: grid;
+        grid-template-columns: 200px 1fr 300px;
+        gap: 20px;
+        height: calc(100vh - 100px);
+      }
+      #credits {
+        background-color: var(--input-bg);
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 0.9em;
+      }
+      a {
+        color: var(--links-color);
+      }
+      #repl-container {
+        display: flex;
+        flex-direction: column;
+      }
+      #output {
+        flex: 1;
+        border: 1px solid var(--highlight-color);
+        border-radius: 5px;
+        padding: 10px;
+        overflow-y: auto;
+        background-color: rgba(49, 50, 68, 0.7);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      #sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow-y: auto;
+      }
+      #examples,
+      #infobox,
+      #env-view {
+        background-color: var(--input-bg);
+        border-radius: 5px;
+        padding: 10px;
+      }
+      .example-category {
+        margin-bottom: 15px;
+      }
+      .example {
+        cursor: pointer;
+        margin-bottom: 5px;
+        padding: 5px;
+        border-radius: 3px;
+        transition: background-color 0.3s ease;
+      }
+      .example:hover {
+        background-color: rgba(137, 180, 250, 0.2);
+      }
+      #input-container {
+        display: flex;
+      }
+      #input {
+        flex-grow: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 5px 0 0 5px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-family: inherit;
+      }
+      #evaluate-btn {
+        padding: 10px 20px;
+        background-color: var(--highlight-color);
+        color: var(--bg-color);
+        border: none;
+        border-radius: 0 5px 5px 0;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      #evaluate-btn:hover {
+        background-color: var(--secondary-color);
+      }
+      .input-line {
+        color: var(--highlight-color);
+        margin-bottom: 5px;
+      }
+      .error-line {
+        color: var(--error-color);
+      }
+      .output-line {
+        margin-bottom: 10px;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lispy (but Lisp-jsy instead)</h1>
+    <div id="main-container">
+      <div id="credits">
+        <h3>Credits</h3>
+        <p>This Lispy implementation is inspired by:</p>
+        <ul>
+          <li>
+            <a href="https://norvig.com/lispy.html" target="_blank"
+              >Peter Norvig's Lispy</a
+            >
+          </li>
+          <li>
+            <a href="https://craftinginterpreters.com/" target="_blank"
+              >"Crafting Interpreters" by Robert Nystrom</a
+            >
+          </li>
+        </ul>
+      </div>
+      <div id="repl-container">
+        <div id="input-container">
+          <input
+            type="text"
+            id="input"
+            placeholder="Enter Lispy expression..."
+          />
+          <button id="evaluate-btn">Evaluate</button>
+        </div>
+        <div id="output"></div>
+      </div>
+      <div id="sidebar">
+        <div id="examples">
+          <h3>Examples:</h3>
+          <div class="example-category">
+            <h4>Basic Operations</h4>
+            <div class="example">(+ 1 2 3)</div>
+            <div class="example">(* 4 5 6)</div>
+            <div class="example">(/ 10 2)</div>
+          </div>
+          <div class="example-category">
+            <h4>Variables and Functions</h4>
+            <div class="example">(define x 10)</div>
+            <div class="example">(define square (lambda (x) (* x x)))</div>
+            <div class="example">(square 5)</div>
+          </div>
+          <div class="example-category">
+            <h4>Conditionals</h4>
+            <div class="example">(if (> 5 3) (quote yes) (quote no))</div>
+            <div class="example">(if (< 5 3) (quote yes) (quote no))</div>
+          </div>
+          <div class="example-category">
+            <h4>Lists and List Operations</h4>
+            <div class="example">(define my-list (list 1 2 3 4 5))</div>
+            <div class="example">(car my-list)</div>
+            <div class="example">(cdr my-list)</div>
+          </div>
+          <div class="example-category">
+            <h4>Higher-Order Functions and map2 Implementation</h4>
+            <div class="example">(define square (lambda (x) (* x x)))</div>
+            <div class="example">(define inc (lambda (x) (+ x 1)))</div>
+            <div class="example">(define numbers (list 1 2 3 4 5))</div>
+            <div class="example">(map square numbers)</div>
+            <div class="example">
+              (define map2 (lambda (f items) (if (null? items) (list) (cons (f
+              (car items)) (map2 f (cdr items))))))
+            </div>
+            <div class="example">(map2 square numbers)</div>
+            <div class="example">(map2 inc numbers)</div>
+            <div class="example">
+              (define compose (lambda (f g) (lambda (x) (f (g x)))))
+            </div>
+            <div class="example">
+              (define square-then-inc (compose inc square))
+            </div>
+            <div class="example">(map2 square-then-inc numbers)</div>
+          </div>
+          <div class="example-category">
+            <h4>Recursion (Looping)</h4>
+            <div class="example">
+              (define factorial (lambda (n) (if (= n 0) 1 (* n (factorial (- n
+              1))))))
+            </div>
+            <div class="example">(factorial 5)</div>
+          </div>
+        </div>
+        <div id="infobox">
+          <h3>Standard Environment</h3>
+          <p>
+            The standard environment includes basic arithmetic operations (+, -,
+            *, /), comparison operators (>, <, >=, <=, =), and common
+            mathematical functions (sqrt, exp, log, sin, cos, etc.).
+          </p>
+          <p>
+            It also includes list operations (car, cdr, cons, list) and other
+            useful functions (map, apply, begin).
+          </p>
+          <p>Control flow is handled with 'if' statements and recursion.</p>
+        </div>
+        <div id="env-view">
+          <h3>Current Environment</h3>
+          <pre id="env-content"></pre>
+        </div>
+      </div>
+    </div>
+
+    <script src="lispy.js"></script>
+    <script>
+      const outputElement = document.getElementById("output");
+      const inputElement = document.getElementById("input");
+      const envViewElement = document.getElementById("env-content");
+      const env = standardEnv();
+
+      function updateEnvView() {
+        envViewElement.textContent = displayEnv(env);
+      }
+
+      function _evaluate() {
+        const input = inputElement.value.trim();
+        if (input === "") return;
+
+        const inputLine = document.createElement("div");
+        inputLine.className = "input-line";
+        inputLine.textContent = `> ${input}`;
+        outputElement.appendChild(inputLine);
+
+        try {
+          const result = evaluate(parse(input), env);
+          const outputLine = document.createElement("div");
+          outputLine.className = "output-line";
+          outputLine.textContent = schemeString(result);
+          outputElement.appendChild(outputLine);
+        } catch (error) {
+          const errorLine = document.createElement("div");
+          errorLine.className = "error-line";
+          errorLine.textContent = `Error: ${error.message}`;
+          outputElement.appendChild(errorLine);
+        }
+
+        inputElement.value = "";
+        outputElement.scrollTop = outputElement.scrollHeight;
+
+        const newElements = outputElement.querySelectorAll(
+          "div:nth-last-child(-n+2)"
+        );
+        newElements.forEach((el) => {
+          el.style.animation = "fadeIn 0.5s ease";
+        });
+
+        updateEnvView();
+      }
+
+      inputElement.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          _evaluate();
+        }
+      });
+
+      document
+        .getElementById("evaluate-btn")
+        .addEventListener("click", _evaluate);
+
+      document.querySelectorAll(".example").forEach((example) => {
+        example.addEventListener("click", () => {
+          inputElement.value = example.textContent;
+          _evaluate();
+        });
+      });
+
+      outputElement.innerHTML =
+        '<div class="output-line">Welcome to the Enhanced Lispy REPL! Try out the examples or enter your own expressions.</div>';
+
+      updateEnvView();
+    </script>
+  </body>
+</html>
