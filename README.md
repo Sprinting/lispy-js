@@ -1,1 +1,1 @@
-A port of peter-norving's lispy.py to javascript. Includes a (very simple) repl. Slightly larger, to account for JS.
+A port of peter-norvig's lispy.py to javascript. Includes a (very simple) repl. Slightly larger, to account for JS.
