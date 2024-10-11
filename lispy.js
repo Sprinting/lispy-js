@@ -92,8 +92,8 @@ function standardEnv() {
     map: new Builtin((fn, ...arrays) =>
       arrays[0].map((_, i) => fn.call(...arrays.map((a) => a[i])))
     ),
-    max: new Builtin(Math.max),
-    min: new Builtin(Math.min),
+    max: new Builtin((x) => Math.max(...x)),
+    min: new Builtin((x) => Math.min(...x)),
     not: new Builtin((x) => !x),
     "null?": new Builtin((x) => x.length === 0),
     "number?": new Builtin((x) => typeof x === "number"),
